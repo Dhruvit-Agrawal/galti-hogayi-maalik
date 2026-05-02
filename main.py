@@ -8,15 +8,15 @@ import streamlit.components.v1 as components
 APP_DIR = Path(__file__).parent
 FLOWER_DIR = APP_DIR / "flower-blooming"
 
-RECIPIENT_NAME = "you"
+RECIPIENT_NAME = "Madamji"
 APOLOGY_TITLE = "I am sorry"
-APOLOGY_LINE = "These flowers are small, but the apology is real."
+APOLOGY_LINE = "These flowers are digital(Pisa khatam), but the apology is real."
 APOLOGY_NOTE = (
     "I know I made a mistake, and I did not want to send just another plain message. "
-    "So I made this little bouquet with care, because you deserve effort, honesty, "
+    "So I made this little bouquet with care, because you deserve the world "
     "and a softer apology than the mess I created."
 )
-APOLOGY_WORDS = ["sorry", "I understand", "I will do better", "thank you for hearing me"]
+APOLOGY_WORDS = ["Sorry", "I was wrong", "Galti Hogayi Maalik", "Im Dying to see your Smile"]
 
 
 def _flower_body() -> str:
