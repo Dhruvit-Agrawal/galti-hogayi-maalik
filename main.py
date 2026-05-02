@@ -1,4 +1,5 @@
 from pathlib import Path
+import json
 
 import streamlit as st
 import streamlit.components.v1 as components
@@ -6,6 +7,16 @@ import streamlit.components.v1 as components
 
 APP_DIR = Path(__file__).parent
 FLOWER_DIR = APP_DIR / "flower-blooming"
+
+RECIPIENT_NAME = "you"
+APOLOGY_TITLE = "I am sorry"
+APOLOGY_LINE = "These flowers are small, but the apology is real."
+APOLOGY_NOTE = (
+    "I know I made a mistake, and I did not want to send just another plain message. "
+    "So I made this little bouquet with care, because you deserve effort, honesty, "
+    "and a softer apology than the mess I created."
+)
+APOLOGY_WORDS = ["sorry", "I understand", "I will do better", "thank you for hearing me"]
 
 
 def _flower_body() -> str:
@@ -125,6 +136,18 @@ def _component_html() -> str:
         f"{_extra_flowers()}\n      <div class=\"grow-ans\" style=\"--d:1.2s\">",
         1,
     )
+    apology_words = "".join(
+        f'<span style="--i:{index}; --row:{index % 2}">{word}</span>'
+        for index, word in enumerate(APOLOGY_WORDS)
+    )
+    apology_payload = json.dumps(
+        {
+            "recipient": RECIPIENT_NAME,
+            "title": APOLOGY_TITLE,
+            "line": APOLOGY_LINE,
+            "note": APOLOGY_NOTE,
+        }
+    )
 
     return f"""
 <!DOCTYPE html>
@@ -143,7 +166,10 @@ def _component_html() -> str:
       --hold-x: 50%;
       --hold-y: 76%;
       --bouquet-scale: 0.86;
+      --bouquet-y-scale: 0.7;
       --bouquet-opacity: 0;
+      --apology-opacity: 0;
+      --apology-y: 14px;
     }}
 
     html,
@@ -172,7 +198,7 @@ def _component_html() -> str:
       position: fixed;
       left: var(--hold-x);
       top: var(--hold-y);
-      transform: translate(-50%, -64%) scale(var(--bouquet-scale));
+      transform: translate(-50%, -58%) scale(var(--bouquet-scale), var(--bouquet-y-scale));
       z-index: 60;
       pointer-events: none;
       opacity: var(--bouquet-opacity);
@@ -396,6 +422,107 @@ def _component_html() -> str:
       color: rgba(220, 255, 249, 0.78);
     }}
 
+    .apology-card {{
+      position: fixed;
+      left: min(7vw, 70px);
+      top: 50%;
+      z-index: 110;
+      width: min(380px, calc(100vw - 36px));
+      padding: 18px 20px 19px;
+      border: 1px solid rgba(255, 241, 168, calc(0.14 + (var(--apology-opacity) * 0.2)));
+      border-radius: 8px;
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(1, 9, 12, 0.62)),
+        rgba(1, 9, 12, 0.58);
+      box-shadow:
+        0 24px 80px rgba(0, 0, 0, 0.38),
+        0 0 calc(14px + (var(--apology-opacity) * 32px)) rgba(255, 214, 128, 0.18);
+      backdrop-filter: blur(14px);
+      color: rgba(251, 255, 252, 0.94);
+      opacity: var(--apology-opacity);
+      transform: translateY(calc(-50% + var(--apology-y)));
+      transition: opacity 260ms ease-out, transform 260ms ease-out, border-color 260ms ease-out;
+      pointer-events: none;
+    }}
+
+    .apology-card::before {{
+      content: "";
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      top: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 241, 168, 0.72), transparent);
+    }}
+
+    .apology-kicker {{
+      display: block;
+      margin-bottom: 6px;
+      color: #fff1a8;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }}
+
+    .apology-card h1 {{
+      margin: 0 0 8px;
+      font-size: clamp(30px, 4vw, 52px);
+      line-height: 0.95;
+      letter-spacing: 0;
+      color: #ffffff;
+      text-shadow: 0 0 24px rgba(255, 241, 168, 0.24);
+    }}
+
+    .apology-line {{
+      margin: 0 0 12px;
+      color: rgba(220, 255, 249, 0.92);
+      font-size: 15px;
+      line-height: 1.45;
+    }}
+
+    .apology-note {{
+      margin: 0;
+      color: rgba(241, 255, 252, 0.78);
+      font-size: 13px;
+      line-height: 1.55;
+    }}
+
+    .apology-words {{
+      position: fixed;
+      inset: 0;
+      z-index: 70;
+      pointer-events: none;
+      opacity: var(--apology-opacity);
+      transition: opacity 260ms ease-out;
+    }}
+
+    .apology-words span {{
+      position: absolute;
+      left: calc(var(--hold-x) + ((var(--i) - 1.5) * 7vw));
+      top: calc(var(--hold-y) - 34vh + (var(--row) * 10vh));
+      padding: 5px 8px;
+      border: 1px solid rgba(255, 241, 168, 0.22);
+      border-radius: 999px;
+      background: rgba(1, 9, 12, 0.34);
+      color: rgba(255, 241, 168, 0.84);
+      font-size: 12px;
+      white-space: nowrap;
+      transform: translate(-50%, -50%);
+      animation: apology-float 4.8s ease-in-out infinite;
+      animation-delay: calc(var(--i) * -0.72s);
+      backdrop-filter: blur(8px);
+    }}
+
+    @keyframes apology-float {{
+      0%, 100% {{
+        margin-top: 0;
+      }}
+      50% {{
+        margin-top: -14px;
+      }}
+    }}
+
     .hud-row {{
       display: flex;
       justify-content: space-between;
@@ -476,6 +603,14 @@ def _component_html() -> str:
         width: min(330px, calc(100vw - 24px));
       }}
 
+      .apology-card {{
+        left: 12px;
+        top: auto;
+        bottom: 112px;
+        width: min(330px, calc(100vw - 24px));
+        transform: translateY(var(--apology-y));
+      }}
+
       .hud-row {{
         font-size: 12px;
       }}
@@ -489,9 +624,9 @@ def _component_html() -> str:
       <canvas id="overlay"></canvas>
     </div>
     <div class="instructions">
-      <strong>Grip hand: closed fist to hold bouquet</strong>
-      <span>Tuck all four fingertips toward the knuckles. The bouquet appears only when this grip is detected.</span>
-      <span>Other hand: pinch open or close to bloom.</span>
+      <strong>Step 1: make a closed grip</strong>
+      <span>Tuck all four fingertips toward the knuckles. This locks the bouquet for a few seconds.</span>
+      <span>Step 2: pinch with either visible hand to bloom.</span>
     </div>
     <div class="hud">
       <div class="hud-row">
@@ -507,6 +642,16 @@ def _component_html() -> str:
     </div>
   </section>
 
+  <div class="apology-words" aria-hidden="true">
+    {apology_words}
+  </div>
+  <article class="apology-card" aria-live="polite">
+    <span class="apology-kicker" id="apologyRecipient"></span>
+    <h1 id="apologyTitle"></h1>
+    <p class="apology-line" id="apologyLine"></p>
+    <p class="apology-note" id="apologyNote"></p>
+  </article>
+
   {flower_markup}
 
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
@@ -521,6 +666,11 @@ def _component_html() -> str:
     const fallback = document.getElementById("fallback");
     const errorNote = document.getElementById("errorNote");
     const manualBloom = document.getElementById("manualBloom");
+    const apologyCopy = {apology_payload};
+    document.getElementById("apologyRecipient").textContent = `for ${{apologyCopy.recipient}}`;
+    document.getElementById("apologyTitle").textContent = apologyCopy.title;
+    document.getElementById("apologyLine").textContent = apologyCopy.line;
+    document.getElementById("apologyNote").textContent = apologyCopy.note;
 
     let bloom = 0.72;
     let targetBloom = 0.72;
@@ -531,6 +681,8 @@ def _component_html() -> str:
     let bouquetOpacity = 0;
     let targetBouquetOpacity = 0;
     let lastHandAt = 0;
+    let gripLockedUntil = 0;
+    const GRIP_LOCK_MS = 3500;
 
     const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
     const mapRange = (value, inMin, inMax, outMin, outMax) => {{
@@ -556,8 +708,11 @@ def _component_html() -> str:
       bouquetOpacity += (targetBouquetOpacity - bouquetOpacity) * 0.2;
       const headScale = mapRange(bloom, 0.28, 1, 0.58, 1.08);
       const leafScale = mapRange(bloom, 0.28, 1, 0.72, 1.06);
-      const bouquetScale = mapRange(bloom, 0.28, 1, 0.78, 0.92);
+      const bouquetScale = mapRange(bloom, 0.28, 1, 0.68, 0.82);
+      const bouquetYScale = mapRange(bloom, 0.28, 1, 0.58, 0.72);
       const glow = mapRange(bloom, 0.28, 1, 0.35, 1.45);
+      const apologyOpacity = clamp(mapRange(bloom, 0.72, 0.94, 0, 1), 0, 1) * bouquetOpacity;
+      const apologyY = mapRange(apologyOpacity, 0, 1, 14, 0);
 
       root.style.setProperty("--bloom", bloom.toFixed(3));
       root.style.setProperty("--head-scale", headScale.toFixed(3));
@@ -566,7 +721,10 @@ def _component_html() -> str:
       root.style.setProperty("--hold-x", `${{holdX.toFixed(2)}}%`);
       root.style.setProperty("--hold-y", `${{holdY.toFixed(2)}}%`);
       root.style.setProperty("--bouquet-scale", bouquetScale.toFixed(3));
+      root.style.setProperty("--bouquet-y-scale", bouquetYScale.toFixed(3));
       root.style.setProperty("--bouquet-opacity", bouquetOpacity.toFixed(3));
+      root.style.setProperty("--apology-opacity", apologyOpacity.toFixed(3));
+      root.style.setProperty("--apology-y", `${{apologyY.toFixed(1)}}px`);
 
       requestAnimationFrame(renderBloom);
     }}
@@ -592,7 +750,7 @@ def _component_html() -> str:
       const displayX = ((point.x * renderedW) + offsetX) / viewW;
       const y = ((point.y * renderedH) + offsetY) / viewH;
       return {{
-        x: clamp(displayX, 0, 1),
+        x: clamp(1 - displayX, 0, 1),
         y: clamp(y, 0, 1),
       }};
     }}
@@ -732,14 +890,17 @@ def _component_html() -> str:
     }}
 
     function onResults(results) {{
+      const now = performance.now();
       if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {{
-        const age = performance.now() - lastHandAt;
-        if (age > 700) {{
-          statusText.textContent = "show hand";
-          hintText.textContent = "close one hand into a grip";
-          ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+        const age = now - lastHandAt;
+        if (now > gripLockedUntil) {{
           targetBouquetOpacity = 0;
           setBloom(0.28);
+        }}
+        if (age > 700) {{
+          statusText.textContent = "show hand";
+          hintText.textContent = now < gripLockedUntil ? "grip locked, show pinch" : "close one hand into a grip";
+          ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
         }}
         return;
       }}
@@ -755,12 +916,18 @@ def _component_html() -> str:
 
       const holdCandidate = hands.reduce((best, hand) => hand.fist > best.fist ? hand : best, hands[0]);
       const holdHand = holdCandidate.fist > 0.46 ? holdCandidate : null;
+      const gripActive = Boolean(holdHand) || now < gripLockedUntil;
 
-      if (!holdHand) {{
+      if (holdHand) {{
+        gripLockedUntil = now + GRIP_LOCK_MS;
+        setHoldFromHand(holdHand.landmarks);
+      }}
+
+      if (!gripActive) {{
         targetBouquetOpacity = 0;
         setBloom(0.28);
         drawHands(null, null);
-        lastHandAt = performance.now();
+        lastHandAt = now;
         statusText.textContent = "locked";
         const seen = hands.map((hand) => `${{hand.label}} ${{Math.round(hand.fist * 100)}}%`).join(", ");
         hintText.textContent = seen ? `need grip (${{seen}})` : "close one hand into a grip";
@@ -768,24 +935,25 @@ def _component_html() -> str:
       }}
 
       targetBouquetOpacity = 1;
-      const bloomCandidates = hands.filter((hand) => hand.index !== holdHand.index);
+      const bloomCandidates = hands;
       const bloomHand = bloomCandidates.length > 0
         ? bloomCandidates.reduce((best, hand) => hand.pinch > best.pinch ? hand : best, bloomCandidates[0])
         : null;
 
-      setHoldFromHand(holdHand.landmarks);
       const nextBloom = bloomHand ? mapRange(bloomHand.pinch, 0.55, 1.75, 0.28, 1) : targetBloom;
 
-      lastHandAt = performance.now();
+      lastHandAt = now;
       setBloom(nextBloom);
-      drawHands(holdHand.landmarks, bloomHand?.landmarks);
+      drawHands(holdHand?.landmarks, bloomHand?.landmarks);
 
       const direction = nextBloom > bloom + 0.03 ? "opening" : nextBloom < bloom - 0.03 ? "settling" : "holding";
       statusText.textContent = `${{Math.round(nextBloom * 100)}}%`;
       if (bloomHand) {{
-        hintText.textContent = direction === "opening" ? "grip + blooming" : direction === "settling" ? "grip + soft close" : "bouquet active";
+        hintText.textContent = holdHand
+          ? (direction === "opening" ? "grip + blooming" : direction === "settling" ? "grip + soft close" : "bouquet active")
+          : "grip locked + pinch bloom";
       }} else {{
-        hintText.textContent = hands.length < 2 ? "grip held, bring other hand in" : "hold grip, pinch with other hand";
+        hintText.textContent = "grip locked, pinch to bloom";
       }}
     }}
 
@@ -830,7 +998,7 @@ def _component_html() -> str:
           modelComplexity: 0,
           minDetectionConfidence: 0.42,
           minTrackingConfidence: 0.42,
-          selfieMode: true,
+          selfieMode: false,
         }});
 
         hands.onResults(onResults);
